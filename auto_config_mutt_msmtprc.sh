@@ -50,7 +50,7 @@ function usage() {
 	REPORTING BUGS 报告缺陷
     	向 searKingChan@gmail.com 报告缺陷。	
 	REFERENCE	参见
-		https://github.com/searKing/GithubHub.git
+		https://github.com/searKing/auto_config_mutt_msmtprc.git
 USAGEEOF
 }
 #echo "这里是正文" |mutt -s "这里是标题" 471030698@qq.com

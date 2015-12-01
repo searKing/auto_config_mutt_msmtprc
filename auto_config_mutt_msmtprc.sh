@@ -25,8 +25,6 @@ function usage() {
 				get help log_info
 			-f 
 				force mode to override exist file of the same name
-			-a 
-				force mode to append exist file of the same name,not override
 			-o 
 				the path of the out files
 	AUTHOR 作者
@@ -103,10 +101,6 @@ HELPEOF
 	while getopts "afo:h" opt  
 	do  
 		case $opt in
-		a)
-			#追加模式,与fwrite -a 选项相同
-			g_cfg_append_mode=1	
-			;;  
 		f)
 			#覆盖前永不提示
 			g_cfg_force_mode=1

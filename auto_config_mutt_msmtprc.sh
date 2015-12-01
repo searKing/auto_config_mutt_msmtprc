@@ -241,17 +241,9 @@ function set_default_var_param(){
 	g_send_eamil_action="auto_send_emails"
 	g_send_eamil_names="" #当前动作参数--.gitignore文件名称
 }
-#自动配置mutt
-function auto_config_mutt()
-{	
-	if [ -f $g_mutt_output_file_abs_name ]; then
-	   	if [ $g_cfg_force_mode -eq 0 ]; then 	
-			log_error "${LINENO}:"$g_mutt_output_file_abs_name" files is already exist. use -f to override? Exit."
-			return 1
-		else
-    		rm "$g_mutt_output_file_abs_name" -Rf
-    	fi
-    fi
+#安装mutt
+function install_mutt()
+{
 	#检测是否安装成功msmtp
 	if [ $g_cfg_visual -ne 0 ]; then
 		which mutt	
@@ -266,6 +258,23 @@ function auto_config_mutt()
 			log_error "${LINENO}: install mutt failed($ret). Exit."
 			return 1;
 		fi
+	fi
+}
+#自动配置mutt
+function auto_config_mutt()
+{	
+	if [ -f $g_mutt_output_file_abs_name ]; then
+	   	if [ $g_cfg_force_mode -eq 0 ]; then 	
+			log_error "${LINENO}:"$g_mutt_output_file_abs_name" files is already exist. use -f to override? Exit."
+			return 1
+		else
+    		rm "$g_mutt_output_file_abs_name" -Rf
+    	fi
+    fi
+	#检测是否安装成功msmtp
+	install_mutt	
+	if [ $? -ne 0 ]; then
+		return 1
 	fi
     cat > $g_mutt_output_file_abs_name <<CONFIGEOF	
     #配置发送email的工具为msmtp
@@ -347,6 +356,26 @@ function msmtp_generate_tag_template()
 	account default : $g_default_account
 CONFIGEOF
 }
+
+#安装mutt
+function install_msmtp()
+{
+	#检测是否安装成功msmtp
+	if [ $g_cfg_visual -ne 0 ]; then
+		which msmtp	
+	else
+		which msmtp	1>/dev/null
+	fi
+	
+	if [ $? -ne 0 ]; then
+		sudo apt-get install msmtp
+		ret=$?
+		if [ $ret -ne 0 ]; then
+			log_error "${LINENO}: install msmtp failed($ret). Exit."
+			return 1;
+		fi
+	fi
+}
 #自动配置msmtp
 function auto_config_msmtp()
 {	
@@ -359,18 +388,9 @@ function auto_config_msmtp()
 	
 	
 	#检测是否安装成功msmtp
-	if [ $g_cfg_visual -ne 0 ]; then
-		which msmtp	
-	else
-		which msmtp	1>/dev/null
-	fi
+	install_msmtp
 	if [ $? -ne 0 ]; then
-		sudo apt-get install msmtp
-		ret=$?
-		if [ $ret -ne 0 ]; then
-			log_error "${LINENO}: install msmtp failed($ret). Exit."
-			return 1;
-		fi
+		return 1
 	fi
 	
 	if [ -f $g_msmtp_output_file_abs_name ]; then
@@ -409,6 +429,11 @@ function check_smtp_server()
 		return 1;
 	fi
 	default_account=$1
+	#检测是否安装成功msmtp
+	install_msmtp	
+	if [ $? -ne 0 ]; then
+		return 1
+	fi
 	#测试smtp服务器
 	if [ $g_cfg_visual -ne 0 ]; then
 		msmtp --host=smtp.$default_account.com --serverinfo
@@ -429,11 +454,12 @@ function auto_test_msmtp()
 		log_error "${LINENO}:$FUNCNAME expercts $expected_params_in_num param_in, but receive only $#. EXIT"
 		return 1;
 	fi
+	log_info "${LINENO}:auto config is finished,$FUNCNAME start, it will take a few minutes, you can stop it anytime with Ctrl+C."
 	#测试配置文件
 	if [ $g_cfg_visual -ne 0 ]; then
-		msmtp -P
+		msmtp -P --serverinfo
 	else
-		msmtp -P	 1>/dev/null
+		msmtp -P --serverinfo	 1>/dev/null
 	fi	
     ret=$?
 	if [ $ret -ne 0 ]; then
@@ -443,9 +469,9 @@ function auto_test_msmtp()
 	
 	#测试smtp服务器	
 	if [ $g_cfg_visual -ne 0 ]; then
-		msmtp -S
+		msmtp -S --serverinfo
 	else
-		msmtp -S	 1>/dev/null
+		msmtp -S --serverinfo	 1>/dev/null
 	fi	
     ret=$?
 	if [ $ret -ne 0 ]; then

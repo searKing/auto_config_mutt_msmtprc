@@ -4,6 +4,10 @@ function log_info() {
 	echo "[INFO]$@"
 }
 
+function log_debug() {
+	echo "[DEBUG]$@"
+}
+
 function log_warn() {
 	echo "[WARN]$@"
 }
@@ -29,8 +33,12 @@ function usage() {
 				set sender's mail login password
 			-f 
 				force mode to override exist file of the same name
+			-d
+				get the debug log of the lastest mail log
 			-v
 				verbose display
+			-l
+				list mail sent msg log
 			-o 
 				the path of the out files
 	AUTHOR 作者
@@ -45,7 +53,21 @@ function usage() {
 		https://github.com/searKing/GithubHub.git
 USAGEEOF
 }
-
+#echo "这里是正文" |mutt -s "这里是标题" 471030698@qq.com
+#显示最近一个邮箱发送相关信息
+function get_debug_log()
+{
+	log_debug "${LINENO}:show the lastest mail log in /var/log/exim4/mainlog"
+	if [ -f /var/log/exim4/mainlog ]; then
+		cat /var/log/exim4/mainlog|sort -rk2|head -n 14
+	fi 
+	
+	log_debug "${LINENO}:show the lastest mail error log in /var/spool/exim4/msglog/"
+	sudo ls -l "/var/spool/exim4/msglog/"|grep ^[^d]|sort -rk8|head -1|awk '{print $9}'|xargs -i sudo cat /var/spool/exim4/msglog/{}
+		
+	log_debug "${LINENO}:show the lastest mail log in mailq"
+	sudo mailq | head -n 1
+}
 #循环嵌套调用程序,每次输入一个参数
 #本shell中定义的其他函数都认为不支持空格字符串的序列化处理（pull其实也支持）
 #@param func_in 	函数名 "func" 只支持单个函数
@@ -104,7 +126,7 @@ HELPEOF
 	set_default_cfg_param #设置默认配置参数	
 	set_default_var_param #设置默认变量参数
 	unset OPTIND
-	while getopts "m:p:vfo:h" opt  
+	while getopts "m:p:dvfo:h" opt  
 	do  
 		case $opt in
 		m)
@@ -122,6 +144,10 @@ HELPEOF
 		o)
 			#输出文件路径
 			g_cfg_output_root_dir=$OPTARG
+			;;  
+		d)
+			#显示最近一个邮箱发送相关信息
+			g_show_latest_debug_info=1
 			;;  
 		v)
 			#是否显示详细信息
@@ -193,6 +219,8 @@ function set_default_cfg_param(){
 	g_cfg_output_root_dir="$(cd ~; pwd)/"
 	cd -
 	
+	#显示最近一个邮箱发送相关信息
+	g_show_latest_debug_info=0
 	#是否显示详细信息
 	g_cfg_visual=0
 }
@@ -429,6 +457,12 @@ function auto_test_msmtp()
 
 
 function do_work(){  	
+	if [ $g_show_latest_debug_info -ne 0 ]; then		
+		#显示最近一个邮箱发送相关信息
+		get_debug_log
+		return 0
+	fi
+
 	call_func_serializable auto_config_mutt
     ret=$?
 	if [ $ret -ne 0 ]; then

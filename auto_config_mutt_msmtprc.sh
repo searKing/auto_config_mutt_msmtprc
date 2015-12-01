@@ -23,8 +23,14 @@ function usage() {
 		$g_git_wrap_shell_name --自动配置git环境  
 			-h 
 				get help log_info
+			-m
+				set sender's mail address
+			-p
+				set sender's mail login password
 			-f 
 				force mode to override exist file of the same name
+			-v
+				verbose display
 			-o 
 				the path of the out files
 	AUTHOR 作者

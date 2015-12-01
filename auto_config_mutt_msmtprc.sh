@@ -98,9 +98,17 @@ HELPEOF
 	set_default_cfg_param #设置默认配置参数	
 	set_default_var_param #设置默认变量参数
 	unset OPTIND
-	while getopts "afo:h" opt  
+	while getopts "m:p:vfo:h" opt  
 	do  
 		case $opt in
+		m)
+			#配置开发者邮箱
+			g_user_email=$OPTARG
+			;;  
+		p)
+			#配置开发者邮箱登陆密码
+			g_user_email_login_passwd=$OPTARG
+			;;  
 		f)
 			#覆盖前永不提示
 			g_cfg_force_mode=1
@@ -109,6 +117,10 @@ HELPEOF
 			#输出文件路径
 			g_cfg_output_root_dir=$OPTARG
 			;;  
+		v)
+			#是否显示详细信息
+			g_cfg_visual=1
+			;;
 		h)  
 			usage
 			return 1  
@@ -130,6 +142,10 @@ use option -h to get more log_information .
 HELPEOF
 		return 0  
 	fi  	
+	
+	#默认账户
+	g_default_account=${g_user_email##*@}
+	g_default_account=${g_default_account%.com}
 	
 	g_mutt_output_file_abs_name="$g_cfg_output_root_dir/$g_config_mutt_file_name"
 	g_msmtp_output_file_abs_name="$g_cfg_output_root_dir/$g_config_msmtp_file_name"
@@ -164,15 +180,15 @@ function set_default_cfg_param(){
 	g_user_name="searKing"	
 	#开发者邮箱
 	g_user_email="searKingChan@163.com"	
-	#默认账户
-	g_default_account=${g_user_email##*@}
-	g_default_account=${g_default_account%.com}
-	#开发者密码
+	#开发者邮箱登陆密码
 	g_user_email_login_passwd="kwisghrojnmklpcn"	
 	cd ~		
 	#输出文件路径
 	g_cfg_output_root_dir="$(cd ~; pwd)/"
 	cd -
+	
+	#是否显示详细信息
+	g_cfg_visual=0
 }
 #设置默认变量参数
 function set_default_var_param(){	
@@ -203,7 +219,12 @@ function auto_config_mutt()
     	fi
     fi
 	#检测是否安装成功msmtp
-	which mutt	
+	if [ $g_cfg_visual -ne 0 ]; then
+		which mutt	
+	else
+		which mutt	1>/dev/null
+	fi
+	
 	if [ $? -ne 0 ]; then
 		sudo apt-get install mutt
 		ret=$?
@@ -304,7 +325,11 @@ function auto_config_msmtp()
 	
 	
 	#检测是否安装成功msmtp
-	which msmtp	
+	if [ $g_cfg_visual -ne 0 ]; then
+		which msmtp	
+	else
+		which msmtp	1>/dev/null
+	fi
 	if [ $? -ne 0 ]; then
 		sudo apt-get install msmtp
 		ret=$?
@@ -351,7 +376,11 @@ function check_smtp_server()
 	fi
 	default_account=$1
 	#测试smtp服务器
-	msmtp --host=smtp.$default_account.com --serverinfo	 >/dev/null
+	if [ $g_cfg_visual -ne 0 ]; then
+		msmtp --host=smtp.$default_account.com --serverinfo
+	else
+		msmtp --host=smtp.$default_account.com --serverinfo	 1>/dev/null
+	fi
     ret=$?
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: get msmtp[smtp.$default_account.com]'s serverinfo failed($ret). Exit."
@@ -367,15 +396,23 @@ function auto_test_msmtp()
 		return 1;
 	fi
 	#测试配置文件
-	msmtp -P
+	if [ $g_cfg_visual -ne 0 ]; then
+		msmtp -P
+	else
+		msmtp -P	 1>/dev/null
+	fi	
     ret=$?
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: test msmtp's configuration failed($ret). Exit."
 		return 1
 	fi 
 	
-	#测试smtp服务器
-	msmtp -S
+	#测试smtp服务器	
+	if [ $g_cfg_visual -ne 0 ]; then
+		msmtp -S
+	else
+		msmtp -S	 1>/dev/null
+	fi	
     ret=$?
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: get msmtp's serverinfo failed($ret). Exit."

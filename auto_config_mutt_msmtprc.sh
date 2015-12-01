@@ -16,7 +16,7 @@ function log_error() {
 function usage() {
 	cat<<USAGEEOF	
 	NAME  
-		$g_shell_name - 自动配置git环境 
+		$g_shell_name - 自动配置邮件发送环境 
 	SYNOPSIS  
 		source $g_shell_name [命令列表] [文件名]...   
 	DESCRIPTION  

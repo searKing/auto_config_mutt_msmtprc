@@ -18,20 +18,20 @@ function log_error() {
 
 #使用方法说明
 function usage() {
-	cat<<USAGEEOF	
-	NAME  
-		$g_shell_name - 自动配置邮件发送环境 
-	SYNOPSIS  
-		source $g_shell_name [命令列表] [文件名]...   
-	DESCRIPTION  
-		$g_git_wrap_shell_name --自动配置git环境  
-			-h 
+	cat<<USAGEEOF
+	NAME
+		$g_shell_name - 自动配置邮件发送环境
+	SYNOPSIS
+		source $g_shell_name [命令列表] [文件名]...
+	DESCRIPTION
+		$g_git_wrap_shell_name --自动配置git环境
+			-h
 				get help log_info
 			-m
 				set sender's mail address
 			-p
 				set sender's mail login password
-			-f 
+			-f
 				force mode to override exist file of the same name
 			-d
 				get the debug log of the lastest mail log
@@ -39,16 +39,16 @@ function usage() {
 				verbose display
 			-l
 				list mail sent msg log
-			-o 
+			-o
 				the path of the out files
 	AUTHOR 作者
     	由 searKing Chan 完成。
-			
+
     DATE   日期
 		2015-12-01
 
 	REPORTING BUGS 报告缺陷
-    	向 searKingChan@gmail.com 报告缺陷。	
+    	向 searKingChan@gmail.com 报告缺陷。
 	REFERENCE	参见
 		https://github.com/searKing/auto_config_mutt_msmtprc.git
 USAGEEOF
@@ -60,11 +60,11 @@ function get_debug_log()
 	log_debug "${LINENO}:show the lastest mail log in /var/log/exim4/mainlog"
 	if [ -f /var/log/exim4/mainlog ]; then
 		cat /var/log/exim4/mainlog|sort -rk2|head -n 14
-	fi 
-	
+	fi
+
 	log_debug "${LINENO}:show the lastest mail error log in /var/spool/exim4/msglog/"
 	sudo ls -l "/var/spool/exim4/msglog/"|grep ^[^d]|sort -rk8|head -1|awk '{print $9}'|xargs -i sudo cat /var/spool/exim4/msglog/{}
-		
+
 	log_debug "${LINENO}:show the lastest mail log in mailq"
 	sudo mailq | head -n 1
 }
@@ -86,16 +86,16 @@ function call_func_serializable()
 				"auto_config_mutt" | "auto_test_msmtp")
 					$func_in
 					;;
-				*) 
+				*)
 					log_error "${LINENO}:Invalid serializable cmd with no param: $func_in"
 					return 1
 					;;
-			esac	
-			;;				
+			esac
+			;;
 		*)	#有参数函数调用
 			error_num=0
 			for curr_param in $param_in
-			do	
+			do
 				case $func_in in
 					"auto_config_msmtp")
 						msmtp_generate_account_template_name=$curr_param
@@ -104,81 +104,81 @@ function call_func_serializable()
 							error_num+=0
 						fi
 					 	;;
-					*) 
+					*)
 						log_error "${LINENO}:Invalid serializable cmd with params: $func_in"
 						return 1
 					 	;;
-				esac		
-			done	
+				esac
+			done
 			return $error_num
-			;;		
+			;;
 	esac
 }
 
 #解析输入参数
 function parse_params_in() {
-	if [ "$#" -lt 0 ]; then   
+	if [ "$#" -lt 0 ]; then
 		cat << HELPEOF
-use option -h to get more log_information .  
+use option -h to get more log_information .
 HELPEOF
-		return 1  
-	fi   	
-	set_default_cfg_param #设置默认配置参数	
+		return 1
+	fi
+	set_default_cfg_param #设置默认配置参数
 	set_default_var_param #设置默认变量参数
 	unset OPTIND
-	while getopts "m:p:dvfo:h" opt  
-	do  
+	while getopts "m:p:dvfo:h" opt
+	do
 		case $opt in
 		m)
 			#配置开发者邮箱
 			g_user_email=$OPTARG
-			;;  
+			;;
 		p)
 			#配置开发者邮箱登陆密码
 			g_user_email_login_passwd=$OPTARG
-			;;  
+			;;
 		f)
 			#覆盖前永不提示
 			g_cfg_force_mode=1
-			;;  
+			;;
 		o)
 			#输出文件路径
 			g_cfg_output_root_dir=$OPTARG
-			;;  
+			;;
 		d)
 			#显示最近一个邮箱发送相关信息
 			g_show_latest_debug_info=1
-			;;  
+			;;
 		v)
 			#是否显示详细信息
 			g_cfg_visual=1
 			;;
-		h)  
+		h)
 			usage
-			return 1  
-			;;  	
+			return 1
+			;;
 		?)
 			log_error "${LINENO}:$opt is Invalid"
 			return 1
 			;;
-		*)    
-			;;  
-		esac  
-	done  
+		*)
+			;;
+		esac
+	done
 	#去除options参数
 	shift $(($OPTIND - 1))
-	
-	if [ "$#" -lt 0 ]; then   
+
+	if [ "$#" -lt 0 ]; then
 		cat << HELPEOF
-use option -h to get more log_information .  
+use option -h to get more log_information .
 HELPEOF
-		return 0  
-	fi  	
-	
+		return 0
+	fi
+
 	#默认账户
 	g_default_account=${g_user_email##*@}
 	g_default_account=${g_default_account%.com}
-	
+
 	g_mutt_output_file_abs_name="$g_cfg_output_root_dir/$g_config_mutt_file_name"
 	g_msmtp_output_file_abs_name="$g_cfg_output_root_dir/$g_config_msmtp_file_name"
 	case $g_default_account in
@@ -186,53 +186,53 @@ HELPEOF
 			g_msmtp_generate_account_template="msmtp_gmail_account_template"
 			;;
 		"163")
-			g_msmtp_generate_account_template="msmtp_163_account_template"		
+			g_msmtp_generate_account_template="msmtp_163_account_template"
 			;;
 		"qq")
-			g_msmtp_generate_account_template="msmtp_qq_account_template"		
+			g_msmtp_generate_account_template="msmtp_qq_account_template"
 			;;
-		*)	#有参数函数调用			
+		*)	#有参数函数调用
 			log_error "${LINENO}:Invalid mail account: $g_default_account"
 			return 1;
-			;;		
+			;;
 	esac
 	#检查远程smtp服务器是否正常
 	check_smtp_server "$g_default_account"
 	if [ $? -ne 0 ]; then
 		return 1;
 	fi
-	
+
 }
 #设置默认配置参数
 function set_default_cfg_param(){
 	#覆盖前永不提示-f
 	g_cfg_force_mode=0
-	
+
 	#开发者名字
-	g_user_name="searKing"	
+	g_user_name="searKing"
 	#开发者邮箱
-	g_user_email="searKingChan@163.com"	
+	g_user_email="searKingChan@163.com"
 	#开发者邮箱登陆密码
-	g_user_email_login_passwd="kwisghrojnmklpcn"	
-	cd ~		
+	g_user_email_login_passwd=""
+	cd ~
 	#输出文件路径
 	g_cfg_output_root_dir="$(cd ~; pwd)/"
 	cd -
-	
+
 	#显示最近一个邮箱发送相关信息
 	g_show_latest_debug_info=0
 	#是否显示详细信息
 	g_cfg_visual=0
 }
 #设置默认变量参数
-function set_default_var_param(){	
+function set_default_var_param(){
 	#获取当前脚本短路径名称
-	g_shell_name="$(basename $0)" 
+	g_shell_name="$(basename $0)"
 	#切换并获取当前脚本所在路径
 	g_shell_repositories_abs_dir="$(cd `dirname $0`; pwd)"
 	#配置文件名称
-	g_config_mutt_file_name=".muttrc"	
-	g_config_msmtp_file_name=".msmtprc"	
+	g_config_mutt_file_name=".muttrc"
+	g_config_msmtp_file_name=".msmtprc"
 	#发送内容文本路径
 	g_mailcontent_ads_dir=$g_shell_repositories_abs_dir
 	#发送内容文本文件名
@@ -246,11 +246,11 @@ function install_mutt()
 {
 	#检测是否安装成功msmtp
 	if [ $g_cfg_visual -ne 0 ]; then
-		which mutt	
+		which mutt
 	else
 		which mutt	1>/dev/null
 	fi
-	
+
 	if [ $? -ne 0 ]; then
 		sudo apt-get install mutt
 		ret=$?
@@ -262,9 +262,9 @@ function install_mutt()
 }
 #自动配置mutt
 function auto_config_mutt()
-{	
+{
 	if [ -f $g_mutt_output_file_abs_name ]; then
-	   	if [ $g_cfg_force_mode -eq 0 ]; then 	
+	   	if [ $g_cfg_force_mode -eq 0 ]; then
 			log_error "${LINENO}:"$g_mutt_output_file_abs_name" files is already exist. use -f to override? Exit."
 			return 1
 		else
@@ -272,15 +272,15 @@ function auto_config_mutt()
     	fi
     fi
 	#检测是否安装成功msmtp
-	install_mutt	
+	install_mutt
 	if [ $? -ne 0 ]; then
 		return 1
 	fi
-    cat > $g_mutt_output_file_abs_name <<CONFIGEOF	
+    cat > $g_mutt_output_file_abs_name <<CONFIGEOF
     #配置发送email的工具为msmtp
 	set sendmail="/usr/bin/msmtp"
 	set use_from=yes
-	set realname="searKing" 
+	set realname="searKing"
 	set from=$g_user_email
 	set editor="gedit"
 	set envelope_from=yes
@@ -291,7 +291,7 @@ CONFIGEOF
 #gmail配置部分模板
 function msmtp_gmail_account_template()
 {
-    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF	
+    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF
 	# A gmail address
 	account        gmail
 	host           smtp.gmail.com
@@ -305,7 +305,7 @@ CONFIGEOF
 #163配置部分模板
 function msmtp_163_account_template()
 {
-    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF	
+    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF
 	# A 163 email address
 	account    163
 	host       smtp.163.com
@@ -315,14 +315,14 @@ function msmtp_163_account_template()
 	#网易免费邮箱的ssl证书通不过验证，所以使用126/163邮箱时，只能关闭tls证书验证
 	tls        off
 	user       $g_user_email
-	#网易邮箱需要开启客户端授权码代替登陆密码(coco189621)
+	#网易邮箱需要开启客户端授权码代替登陆密码
 	password   $g_user_email_login_passwd
 CONFIGEOF
 }
 #qq配置部分模板
 function msmtp_qq_account_template()
 {
-    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF	
+    cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF
 	# A qq email address
 	# http://service.mail.qq.com/cgi-bin/help?subtype=1&&id=28&&no=371
 	account    	qq
@@ -341,7 +341,7 @@ CONFIGEOF
 #msmtp配置通用头部模板
 function msmtp_generate_head_template()
 {
-    cat > $g_msmtp_output_file_abs_name <<CONFIGEOF	
+    cat > $g_msmtp_output_file_abs_name <<CONFIGEOF
 	#Accounts will inherit settings from this section
 	defaults
 	tls on
@@ -351,7 +351,7 @@ CONFIGEOF
 #msmtp配置通用头部模板
 function msmtp_generate_tag_template()
 {
-	cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF	
+	cat >> $g_msmtp_output_file_abs_name <<CONFIGEOF
 	# Set a default account
 	account default : $g_default_account
 CONFIGEOF
@@ -362,11 +362,11 @@ function install_msmtp()
 {
 	#检测是否安装成功msmtp
 	if [ $g_cfg_visual -ne 0 ]; then
-		which msmtp	
+		which msmtp
 	else
 		which msmtp	1>/dev/null
 	fi
-	
+
 	if [ $? -ne 0 ]; then
 		sudo apt-get install msmtp
 		ret=$?
@@ -378,23 +378,23 @@ function install_msmtp()
 }
 #自动配置msmtp
 function auto_config_msmtp()
-{	
+{
 	expected_params_in_num=1
 	if [ $# -ne $expected_params_in_num ]; then
 		log_error "${LINENO}:$FUNCNAME expercts $expected_params_in_num param_in, but receive only $#. EXIT"
 		return 1;
 	fi
 	msmtp_generate_account_template=$1
-	
-	
+
+
 	#检测是否安装成功msmtp
 	install_msmtp
 	if [ $? -ne 0 ]; then
 		return 1
 	fi
-	
+
 	if [ -f $g_msmtp_output_file_abs_name ]; then
-    	if [ $g_cfg_force_mode -eq 0 ]; then    	
+    	if [ $g_cfg_force_mode -eq 0 ]; then
 			log_error "${LINENO}:"$g_msmtp_output_file_abs_name" files is already exist. use -f to override? Exit."
 			return 1
 		else
@@ -406,12 +406,12 @@ function auto_config_msmtp()
 	if [ $? -ne 0 ]; then
 		return 1;
 	fi
-    
+
     $msmtp_generate_account_template
 	if [ $? -ne 0 ]; then
 		return 1;
 	fi
-	
+
     msmtp_generate_tag_template
 	if [ $? -ne 0 ]; then
 		return 1;
@@ -430,7 +430,7 @@ function check_smtp_server()
 	fi
 	default_account=$1
 	#检测是否安装成功msmtp
-	install_msmtp	
+	install_msmtp
 	if [ $? -ne 0 ]; then
 		return 1
 	fi
@@ -444,11 +444,11 @@ function check_smtp_server()
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: get msmtp[smtp.$default_account.com]'s serverinfo failed($ret). Exit."
 		return 1
-	fi 
+	fi
 }
 #自动测试msmtp配置是否成功
 function auto_test_msmtp()
-{	
+{
 	expected_params_in_num=0
 	if [ $# -ne $expected_params_in_num ]; then
 		log_error "${LINENO}:$FUNCNAME expercts $expected_params_in_num param_in, but receive only $#. EXIT"
@@ -460,30 +460,30 @@ function auto_test_msmtp()
 		msmtp -P --serverinfo
 	else
 		msmtp -P --serverinfo	 1>/dev/null
-	fi	
+	fi
     ret=$?
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: test msmtp's configuration failed($ret). Exit."
 		return 1
-	fi 
-	
-	#测试smtp服务器	
+	fi
+
+	#测试smtp服务器
 	if [ $g_cfg_visual -ne 0 ]; then
 		msmtp -S --serverinfo
 	else
 		msmtp -S --serverinfo	 1>/dev/null
-	fi	
+	fi
     ret=$?
 	if [ $ret -ne 0 ]; then
 		log_error "${LINENO}: get msmtp's serverinfo failed($ret). Exit."
 		return 1
-	fi 
+	fi
 }
 
 
 
-function do_work(){  	
-	if [ $g_show_latest_debug_info -ne 0 ]; then		
+function do_work(){
+	if [ $g_show_latest_debug_info -ne 0 ]; then
 		#显示最近一个邮箱发送相关信息
 		get_debug_log
 		return 0
@@ -493,17 +493,17 @@ function do_work(){
     ret=$?
 	if [ $ret -ne 0 ]; then
 		return 1
-	fi 
-	call_func_serializable auto_config_msmtp $g_msmtp_generate_account_template	
+	fi
+	call_func_serializable auto_config_msmtp $g_msmtp_generate_account_template
     ret=$?
 	if [ $ret -ne 0 ]; then
 		return 1
-	fi 
+	fi
 	call_func_serializable auto_test_msmtp
 	ret=$?
 	if [ $ret -ne 0 ]; then
 		return 1
-	fi 
+	fi
 }
 ################################################################################
 #脚本开始
@@ -512,10 +512,10 @@ function shell_wrap()
 {
 	#含空格的字符串若想作为一个整体传递，则需加*
 	#"$*" is equivalent to "$1c$2c...", where c is the first character of the value of the IFS variable.
-	#"$@" is equivalent to "$1" "$2" ... 
+	#"$@" is equivalent to "$1" "$2" ...
 	#$*、$@不加"",则无区别，
 	parse_params_in "$@"
-	if [ $? -ne 0 ]; then 
+	if [ $? -ne 0 ]; then
 		return 1
 	fi
 	do_work
@@ -527,4 +527,3 @@ function shell_wrap()
 	return 0
 }
 shell_wrap "$@"
-
